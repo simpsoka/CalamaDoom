@@ -13,11 +13,11 @@ async def main():
         # Wait for the blocker to be visible
         await expect(page.locator("#blocker")).to_be_visible()
 
+        # Click the blocker to start the game
+        await page.locator("#blocker").click()
+
         # Add a delay to allow the game to load
         await page.wait_for_timeout(1000)
-
-        # Click the renderer's canvas to start the game
-        await page.locator("canvas").click()
 
         # Wait for the blocker to disappear
         await expect(page.locator("#blocker")).to_be_hidden()

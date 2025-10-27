@@ -107,7 +107,7 @@ const blocker = document.getElementById('blocker');
 const instructions = document.getElementById('instructions');
 
 // Handle pointer lock state changes
-renderer.domElement.addEventListener('click', () => {
+blocker.addEventListener('click', () => {
     if (!GAME_STATE.isGameOver) controls.lock();
 });
 
