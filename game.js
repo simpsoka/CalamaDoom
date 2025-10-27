@@ -51,6 +51,12 @@ document.body.appendChild(renderer.domElement);
 // --- Lighting ---
 const ambientLight = new THREE.AmbientLight(0x444444);
 scene.add(ambientLight);
+
+// Add a strong directional light for overall scene visibility
+const sun = new THREE.DirectionalLight(0xffffff, 1.2);
+sun.position.set(5, 10, 5); // Position it high and to the side
+scene.add(sun);
+
 // Flashlight attached to camera to see in dark corners
 const flashLight = new THREE.PointLight(0xffffff, 0.8, 25);
 camera.add(flashLight);
@@ -96,12 +102,12 @@ function gameWin() {
 }
 
 // --- Input & Controls ---
-const controls = new PointerLockControls(camera, document.body);
+const controls = new PointerLockControls(camera, renderer.domElement);
 const blocker = document.getElementById('blocker');
 const instructions = document.getElementById('instructions');
 
 // Handle pointer lock state changes
-instructions.addEventListener('click', () => {
+renderer.domElement.addEventListener('click', () => {
     if (!GAME_STATE.isGameOver) controls.lock();
 });
 
@@ -120,9 +126,15 @@ controls.addEventListener('unlock', () => {
     for (let key in KEY_STATE) KEY_STATE[key] = false;
 });
 
-document.addEventListener('keydown', (e) => KEY_STATE[e.code] = true);
-document.addEventListener('keyup', (e) => KEY_STATE[e.code] = false);
-document.addEventListener('mousedown', (e) => {
+window.addEventListener('keydown', (e) => {
+    KEY_STATE[e.code] = true;
+    // Emergency exit
+    if (e.code === 'Backquote') {
+        controls.unlock();
+    }
+});
+window.addEventListener('keyup', (e) => KEY_STATE[e.code] = false);
+renderer.domElement.addEventListener('mousedown', (e) => {
     if (controls.isLocked && e.button === 0) shoot();
 });
 
@@ -166,8 +178,8 @@ function buildLevel(map) {
                 scene.add(wall);
             } else if (cell === 'P') {
                 camera.position.set(posX, 1.6, posZ);
-                // Look towards center of map initially
-                camera.lookAt(new THREE.Vector3(map[0].length/2 * CONFIG.UNIT_SIZE, 1.6, map.length/2 * CONFIG.UNIT_SIZE));
+                // Look towards an open area (+X) instead of the center
+                camera.lookAt(new THREE.Vector3(camera.position.x + CONFIG.UNIT_SIZE * 2, 1.6, camera.position.z));
             } else if (cell === 'E') {
                 spawnEnemy(posX, posZ);
             } else if (cell === 'X') {
