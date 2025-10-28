@@ -47,6 +47,8 @@ const renderer = new THREE.WebGLRenderer({ antialias: false }); // False for ret
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.setPixelRatio(window.devicePixelRatio);
 document.body.appendChild(renderer.domElement);
+// Allow the canvas to receive focus for consistent keyboard input
+renderer.domElement.tabIndex = 0;
 
 // --- Lighting ---
 const ambientLight = new THREE.AmbientLight(0x444444);
@@ -109,10 +111,16 @@ const instructions = document.getElementById('instructions');
 renderer.domElement.addEventListener('click', () => {
     if (!GAME_STATE.isGameOver) controls.lock();
 });
+// Also start from the overlay so the first click always works
+instructions.addEventListener('click', () => {
+    if (!GAME_STATE.isGameOver) controls.lock();
+});
 
 controls.addEventListener('lock', () => {
     instructions.style.display = 'none';
     blocker.style.display = 'none';
+    // Ensure the canvas has keyboard focus once locked
+    renderer.domElement.focus();
 });
 
 controls.addEventListener('unlock', () => {
@@ -126,14 +134,15 @@ controls.addEventListener('unlock', () => {
 });
 
 window.addEventListener('keydown', (e) => {
-    KEY_STATE[e.code] = true;
-    // Emergency exit
-    if (e.code === 'Backquote') {
-        controls.unlock();
+    // Prevent page handling of movement keys
+    if (['KeyW','KeyA','KeyS','KeyD','ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Space'].includes(e.code)) {
+        e.preventDefault();
     }
+    KEY_STATE[e.code] = true;
+    if (e.code === 'Backquote') controls.unlock();
 });
 window.addEventListener('keyup', (e) => KEY_STATE[e.code] = false);
-document.addEventListener('mousedown', (e) => {
+renderer.domElement.addEventListener('mousedown', (e) => {
     if (controls.isLocked && e.button === 0) shoot();
 });
 
